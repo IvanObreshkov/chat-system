@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="631.0"
+            prefWidth="791.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.ijad.chatsystemclientandui.controllers.ChatWindowController">
+   <children>
+      <Button fx:id="sendButton" layoutX="630.0" layoutY="540.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="57.0" text="Send" onMouseClicked="#sendMessage" />
+      <TextArea fx:id="allMessagesArea" layoutX="272.0" layoutY="132.0" prefHeight="366.0" prefWidth="414.0" />
+      <ListView fx:id="onlineUsersListView" layoutX="25.0" layoutY="129.0" prefHeight="200.0" prefWidth="200.0" />
+      <ListView fx:id="offlineUsersListView" layoutX="25.0" layoutY="373.0" prefHeight="200.0" prefWidth="200.0" />
+      <TextField fx:id="messageField" layoutX="272.0" layoutY="540.0" prefHeight="33.0" prefWidth="333.0" />
+      <Label layoutX="26.0" layoutY="106.0" text="Online users" />
+      <Label layoutX="25.0" layoutY="350.0" text="Offline users" />
+      <Label layoutX="272.0" layoutY="524.0" text="Type your message here" />
+      <Label layoutX="272.0" layoutY="104.0" text="Messages" />
+      <Button fx:id="exitButton" layoutX="734.0" layoutY="-2.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="57.0" text="Exit" />
+   </children>
+</AnchorPane>
