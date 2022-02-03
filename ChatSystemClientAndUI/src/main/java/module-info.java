@@ -4,6 +4,6 @@ module com.app.clientside.chatsystemclientandui {
     requires org.slf4j;
 
 
-    exports com.ijad.chatsystemclientandui.controllers;
-    opens com.ijad.chatsystemclientandui.controllers to javafx.fxml;
+    exports com.ijad.chatsystem.app.controllers;
+    opens com.ijad.chatsystem.app.controllers to javafx.fxml;
 }

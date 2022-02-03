@@ -1,4 +1,4 @@
-package com.ijad.chatsystemclientandui.classes;
+package com.ijad.chatsystem.app.classes;
 
 import java.net.Socket;
 
@@ -16,7 +16,7 @@ public class Message {
         this.sender = sender;
         this.receiver = receiver;
     }
-
+//add datatime
     public String getContent() {
         return content;
     }

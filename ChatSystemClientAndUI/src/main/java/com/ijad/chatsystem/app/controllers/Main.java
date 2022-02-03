@@ -1,4 +1,4 @@
-package com.ijad.chatsystemclientandui.controllers;
+package com.ijad.chatsystem.app.controllers;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

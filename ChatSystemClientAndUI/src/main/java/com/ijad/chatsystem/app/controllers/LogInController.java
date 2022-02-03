@@ -1,6 +1,6 @@
-package com.ijad.chatsystemclientandui.controllers;
+package com.ijad.chatsystem.app.controllers;
 
-import com.ijad.chatsystemclientandui.classes.ClientThread;
+import com.ijad.chatsystem.app.classes.ClientThread;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;

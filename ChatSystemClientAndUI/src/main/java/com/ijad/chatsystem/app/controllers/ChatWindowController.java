@@ -1,10 +1,10 @@
-package com.ijad.chatsystemclientandui.controllers;
+package com.ijad.chatsystem.app.controllers;
 
-import com.ijad.chatsystemclientandui.classes.ClientThread;
-import com.ijad.chatsystemclientandui.classes.Message;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import org.slf4j.LoggerFactory;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
 
 public class ChatWindowController  {
@@ -22,8 +22,7 @@ public class ChatWindowController  {
      */
     public void sendMessage() {
         if (messageField.getText().length() <= 200) {
-            System.out.println("Chat works fine");
-            displayOnlineUsers(onlineUsersListView);
+           // displayOnlineUsers(onlineUsersListView);
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Please enter message no longer than 200 characters");
@@ -32,14 +31,15 @@ public class ChatWindowController  {
     }
 
     private void displayOnlineUsers(ListView<Object> onlineUsersListView){
-        onlineUsersListView.getItems().addAll(ClientThread.getOnlineUsers());
+       // onlineUsersListView.getItems().addAll(ClientThread.getOnlineUsers());
       //  onlineUsersListView.getSelectionModel().getSelectedItems();
-        System.out.println(onlineUsersListView.getSelectionModel().getSelectedItems());
+
     }
 
     private void displayOfflineUsers(){}
 }
 //FIXME:
 // - continuous displaying of onlineUsersList
+//TODO: get user, get selected user, get text, create message
 
 

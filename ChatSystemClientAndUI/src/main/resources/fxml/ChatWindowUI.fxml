@@ -5,7 +5,7 @@
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="631.0"
             prefWidth="791.0" xmlns="http://javafx.com/javafx/15.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.ijad.chatsystemclientandui.controllers.ChatWindowController">
+            fx:controller="com.ijad.chatsystem.app.controllers.ChatWindowController">
    <children>
       <Button fx:id="sendButton" layoutX="630.0" layoutY="540.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="57.0" text="Send" onMouseClicked="#sendMessage" />
       <TextArea fx:id="allMessagesArea" layoutX="272.0" layoutY="132.0" prefHeight="366.0" prefWidth="414.0" />
