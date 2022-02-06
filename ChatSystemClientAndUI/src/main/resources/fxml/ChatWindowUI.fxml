@@ -16,6 +16,6 @@
       <Label layoutX="25.0" layoutY="350.0" text="Offline users" />
       <Label layoutX="272.0" layoutY="524.0" text="Type your message here" />
       <Label layoutX="272.0" layoutY="104.0" text="Messages" />
-      <Button fx:id="exitButton" layoutX="734.0" layoutY="-2.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="57.0" text="Exit" />
+      <Button fx:id="exitButton" layoutX="734.0" layoutY="-2.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="57.0" text="Exit" onMouseClicked="#exitSystem"/>
    </children>
 </AnchorPane>
