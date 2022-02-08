@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -21,8 +22,10 @@ public class ClientThread extends Thread {
     private static String username;
     private static ArrayList<ClientDTO> onlineUsers = new ArrayList<>();
     private static ArrayList<ClientDTO> offlineUsers = new ArrayList<>();
+    //maybe make private
     public static boolean running = false;
-
+    private ChatWindowController chatWindowController;
+    private static OutputStream clientSocketOutputStream;
     public ClientThread(String username) {
         ClientThread.username = username;
     }
@@ -32,8 +35,9 @@ public class ClientThread extends Thread {
         try {
             running = true;
             Socket clientSocket = new Socket("localhost", 7005);
+            clientSocketOutputStream = clientSocket.getOutputStream();
             logger.info("Client is running");
-            PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream(), true);
+            PrintWriter printWriter = new PrintWriter(clientSocketOutputStream, true);
 
             //Send username to server
             printWriter.println(username);
@@ -49,7 +53,7 @@ public class ClientThread extends Thread {
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        ChatWindowController chatWindowController = fxmlLoaderChatWindow.getController();
+                        chatWindowController = fxmlLoaderChatWindow.getController();
                         chatWindowController.displayOnlineUsers();
                     }
                 });
@@ -71,6 +75,10 @@ public class ClientThread extends Thread {
             onlineUsersUsernames.add(onlineUsers.get(i).getUsername());
         }
         return onlineUsersUsernames;
+    }
+
+    public static OutputStream getClientSocketOutputStream() {
+        return clientSocketOutputStream;
     }
 
     public static String getUsername() {

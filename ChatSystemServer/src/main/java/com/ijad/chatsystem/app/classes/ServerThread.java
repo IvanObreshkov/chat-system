@@ -15,7 +15,9 @@ public class ServerThread extends Thread {
     //Map between username and socket
     private LinkedHashMap<String, Socket> onlineUsersMap = new LinkedHashMap<>();
     private ArrayList<Object> offlineUsers = new ArrayList<>();
+
     private ConcurrentLinkedQueue<Object> messagesForSending;
+
 
     @Override
     public void run() {
@@ -26,7 +28,8 @@ public class ServerThread extends Thread {
             while (true) {
                 //Accepting new clients
                 Socket clientSocket = serverSocket.accept();
-                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                InputStream inputStream = clientSocket.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
 
                 //Link client's socket to their username
                 String username = bufferedReader.readLine();
@@ -39,8 +42,13 @@ public class ServerThread extends Thread {
                     OnlineUsersManager onlineUsersManager = new OnlineUsersManager(onlineUsersMap, newUser);
                     onlineUsersManager.start();
                 }
+
+                //Message handler for every client
+                MessagesHandler messagesHandler = new MessagesHandler(inputStream);
+                messagesHandler.start();
+
             }
-        } catch (IOException e) {
+        } catch (IOException  e) {
             e.printStackTrace();
         }
 

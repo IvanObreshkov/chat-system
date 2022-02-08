@@ -24,6 +24,8 @@ public class LogInController {
     private Button logInButton;
 
     private String username;
+
+    //maybe make private
     public static FXMLLoader fxmlLoaderChatWindow;
 
     /**
