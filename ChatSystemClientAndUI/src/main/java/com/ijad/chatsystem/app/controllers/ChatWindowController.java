@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,6 +42,8 @@ public class ChatWindowController {
                     .append("\n").append(timeStamp);
             allMessagesArea.appendText(messageForDisplay + "\n" + "\n");
             messageField.clear();
+
+            //TODO: Clear and save textArea when another user is selected
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Please enter message no longer than 200 characters");
@@ -63,5 +66,9 @@ public class ChatWindowController {
 
     public Message getMessage() {
         return message;
+    }
+
+    public TextArea getAllMessagesArea() {
+        return allMessagesArea;
     }
 }

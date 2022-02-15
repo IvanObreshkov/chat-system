@@ -44,7 +44,7 @@ public class ServerThread extends Thread {
                 }
 
                 //Message handler for every client
-                MessagesHandler messagesHandler = new MessagesHandler(inputStream);
+                MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap);
                 messagesHandler.start();
 
             }
