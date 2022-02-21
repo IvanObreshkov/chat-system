@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.*;
+import com.ijad.chatsystem.commonclasses. *;
 
 /**
  * Updates statuses of users by sending lists of online and offline users to all connected clients

@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ijad.chatsystem.commonclasses. *;
+
 
 public class ServerThread extends Thread {
     private final Logger logger = LoggerFactory.getLogger(ServerThread.class);

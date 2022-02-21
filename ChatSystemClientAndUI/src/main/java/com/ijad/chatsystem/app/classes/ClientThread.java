@@ -4,11 +4,15 @@ import com.ijad.chatsystem.app.controllers.ChatWindowController;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.ijad.chatsystem.commonclasses. *;
+
 
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.ijad.chatsystem.app.controllers.LogInController.fxmlLoaderChatWindow;
@@ -45,34 +49,28 @@ public class ClientThread extends Thread {
             printWriter.println(username);
 
             while (true) {
-                synchronized (clientSocketInputStream) {
-                    //Receiving connected users
-                    ObjectInputStream objectInputStream = new ObjectInputStream(clientSocketInputStream);
-                    Object receivedObject = objectInputStream.readObject();
-                    if (receivedObject instanceof ClientDTO) {
-                        ClientDTO newlyConnectedUser = (ClientDTO) receivedObject;
-                        onlineUsers.add(newlyConnectedUser);
+                //Receiving connected users
+                ObjectInputStream objectInputStream = new ObjectInputStream(clientSocketInputStream);
+                Object receivedObject = objectInputStream.readObject();
 
-                        //To new method
-                        //Displaying online users
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
+                //Checking inputStream for new clients
+                if (receivedObject instanceof ClientDTO) {
+                    ClientDTO newlyConnectedUser = (ClientDTO) receivedObject;
+                    onlineUsers.add(newlyConnectedUser);
 
-                                chatWindowController = fxmlLoaderChatWindow.getController();
-                                chatWindowController.displayOnlineUsers();
+                    //Displaying online users
+                    displayOnlineUsers();
 
-                            }
-                        });
-                        
-                        logger.info("New user " + newlyConnectedUser.getUsername());
-                    } else if (receivedObject instanceof Message) {
-                        Message receivedMessage = (Message) receivedObject;
-                        StringBuilder messageForDisplay = new StringBuilder();
-                        messageForDisplay.append(receivedMessage.getSender()).append(": ").append(receivedMessage.getContent())
-                                .append("\n").append(receivedMessage.getTimeStamp());
-                        chatWindowController.getAllMessagesArea().appendText(messageForDisplay + "\n" + "\n");
-                    }
+                    logger.info("New user " + newlyConnectedUser.getUsername());
+
+                    //Checking inputStream for new messages
+                } else if (receivedObject instanceof Message) {
+                    Message receivedMessage = (Message) receivedObject;
+
+                    StringBuilder messageForDisplay = new StringBuilder();
+                    messageForDisplay.append(receivedMessage.getSender()).append(": ").append(receivedMessage.getContent())
+                            .append("\n").append(receivedMessage.getTimeStamp());
+                    chatWindowController.getAllMessagesArea().appendText(messageForDisplay + "\n" + "\n");
                 }
 
             }
@@ -89,6 +87,17 @@ public class ClientThread extends Thread {
             onlineUsersUsernames.add(onlineUsers.get(i).getUsername());
         }
         return onlineUsersUsernames;
+    }
+
+    public static void sendMessage(Message message) throws IOException {
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocketOutputStream);
+        objectOutputStream.writeObject(message);
+    }
+    private void displayOnlineUsers(){
+        Platform.runLater(() -> {
+            chatWindowController = fxmlLoaderChatWindow.getController();
+            chatWindowController.displayOnlineUsers();
+        });
     }
 
     public static InputStream getClientSocketInputStream() {

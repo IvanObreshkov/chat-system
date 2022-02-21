@@ -1,4 +1,4 @@
-package com.ijad.chatsystem.app.classes;
+package com.ijad.chatsystem.commonclasses;
 
 import java.io.Serializable;
 

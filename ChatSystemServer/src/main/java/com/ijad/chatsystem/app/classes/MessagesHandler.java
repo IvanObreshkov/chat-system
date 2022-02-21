@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.LinkedHashMap;
+import com.ijad.chatsystem.commonclasses. *;
 
 /**
  * This class is responsible for handling incoming messages and sending them to the appropriate user
