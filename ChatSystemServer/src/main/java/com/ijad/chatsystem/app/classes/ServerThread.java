@@ -1,3 +1,4 @@
+
 package com.ijad.chatsystem.app.classes;
 
 import java.io.*;
@@ -20,6 +21,7 @@ public class ServerThread extends Thread {
 
     private ConcurrentLinkedQueue<Object> messagesForSending;
 
+    //Add HashMap here with key ivan-peter and so on
 
     @Override
     public void run() {

@@ -4,7 +4,7 @@ import com.ijad.chatsystem.app.controllers.ChatWindowController;
 import javafx.application.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ijad.chatsystem.commonclasses. *;
+import com.ijad.chatsystem.commonclasses.*;
 
 
 import java.io.*;
@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.ijad.chatsystem.app.controllers.LogInController.fxmlLoaderChatWindow;
@@ -30,6 +31,8 @@ public class ClientThread extends Thread {
     private static InputStream clientSocketInputStream;
     private static OutputStream clientSocketOutputStream;
     private static Socket clientSocket;
+    private static HashMap<String, ArrayList<Message>> chatHistory;
+    private Message receivedMessage;
 
     public ClientThread(String username) {
         ClientThread.username = username;
@@ -71,7 +74,13 @@ public class ClientThread extends Thread {
                     messageForDisplay.append(receivedMessage.getSender()).append(": ").append(receivedMessage.getContent())
                             .append("\n").append(receivedMessage.getTimeStamp());
                     chatWindowController.getAllMessagesArea().appendText(messageForDisplay + "\n" + "\n");
-                }
+
+                    //Adds received messages to hashmap containing chat history for every user
+                }// else if (receivedObject instanceof HashMap) {
+                 //   chatHistory = (HashMap<String, ArrayList<Message>>) receivedObject;
+                 //   chatHistory.get(receivedMessage.getSender()).add(receivedMessage);
+                 //   }
+
 
             }
 
@@ -93,7 +102,8 @@ public class ClientThread extends Thread {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocketOutputStream);
         objectOutputStream.writeObject(message);
     }
-    private void displayOnlineUsers(){
+
+    private void displayOnlineUsers() {
         Platform.runLater(() -> {
             chatWindowController = fxmlLoaderChatWindow.getController();
             chatWindowController.displayOnlineUsers();

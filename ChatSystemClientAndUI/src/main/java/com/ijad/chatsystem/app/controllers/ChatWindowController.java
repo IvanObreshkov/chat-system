@@ -30,7 +30,7 @@ public class ChatWindowController {
     public void sendMessage() throws IOException {
         if (messageField.getText().length() <= 200) {
             String chosenUser = onlineUsersListView.getSelectionModel().getSelectedItem();
-            String timeStamp = new SimpleDateFormat("HH:mm' on 'dd.MM.yyyy").format(new Date());
+            String timeStamp = new SimpleDateFormat("HH:mm:ss' on 'dd.MM.yyyy").format(new Date());
             message = new Message(messageField.getText(), ClientThread.getUsername(), chosenUser, timeStamp);
 
             ClientThread.sendMessage(message);
