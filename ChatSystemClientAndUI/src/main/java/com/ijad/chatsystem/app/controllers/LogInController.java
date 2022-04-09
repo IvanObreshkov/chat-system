@@ -24,19 +24,23 @@ public class LogInController {
     private Button logInButton;
 
     private String username;
-
-    //maybe make private
-    public static FXMLLoader fxmlLoaderChatWindow;
+    private static FXMLLoader fxmlLoaderChatWindow;
 
     /**
      * Checks if username is entered correctly then starts the chat window
+     *
      * @throws Exception
      */
     public void logIn() throws Exception {
+        String strPattern = "^[a-zA-Z0-9]*$";
         logger.info("Start logIn");
         username = usernameTextField.getText();
-        String strPattern = "^[a-zA-Z0-9]*$";
-        if (username.matches(strPattern) && username.length() <= 10) {
+
+        if (username.equals("")) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Please enter correct username no longer than 10 characters");
+            alert.show();
+        } else if (username.matches(strPattern) && username.length() <= 10) {
             new ClientThread(username).start();
             startChatWindow();
 
@@ -53,6 +57,7 @@ public class LogInController {
 
     /**
      * Loads the chat window of the system
+     *
      * @throws IOException
      */
     public void startChatWindow() throws IOException {
@@ -64,4 +69,7 @@ public class LogInController {
         stage.show();
     }
 
+    public static FXMLLoader getFxmlLoaderChatWindow() {
+        return fxmlLoaderChatWindow;
+    }
 }

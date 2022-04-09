@@ -1,15 +1,20 @@
 
 package com.ijad.chatsystem.app.classes;
 
-import java.io.*;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
+import com.ijad.chatsystem.commonclasses.ClientDTO;
+import com.ijad.chatsystem.commonclasses.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.ijad.chatsystem.commonclasses. *;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
 
 
 public class ServerThread extends Thread {
@@ -18,15 +23,13 @@ public class ServerThread extends Thread {
     //Map between username and socket
     private LinkedHashMap<String, Socket> onlineUsersMap = new LinkedHashMap<>();
     private ArrayList<Object> offlineUsers = new ArrayList<>();
-
-    private ConcurrentLinkedQueue<Object> messagesForSending;
-
-    //Add HashMap here with key ivan-peter and so on
+    //Chat history for every user
+    private static Hashtable<String, ArrayList<Message>> messagesBetweenUsersHashTable = new Hashtable<>();
 
     @Override
     public void run() {
         try {
-            int port = 7005;
+            int port = 7006;
             ServerSocket serverSocket = new ServerSocket(port);
             logger.info("Server is running");
             while (true) {
@@ -37,7 +40,7 @@ public class ServerThread extends Thread {
 
                 //Link client's socket to their username
                 String username = bufferedReader.readLine();
-                ClientDTO newUser = new ClientDTO(username,clientSocket.toString());
+                ClientDTO newUser = new ClientDTO(username, clientSocket.toString());
                 onlineUsersMap.put(username, clientSocket);
                 logger.info("{} accepted", username);
 
@@ -50,19 +53,22 @@ public class ServerThread extends Thread {
                 //Message handler for every client
                 MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap);
                 messagesHandler.start();
-
             }
-        } catch (IOException  e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
-        // public void sendMessages() {
-        //}
+    public static Hashtable<String, ArrayList<Message>> getMessagesBetweenUsersHashTable() {
+        return messagesBetweenUsersHashTable;
+    }
+
+    public static void setMessagesBetweenUsersHashTable(Hashtable<String, ArrayList<Message>> messagesBetweenUsersHashTable) {
+        ServerThread.messagesBetweenUsersHashTable = messagesBetweenUsersHashTable;
     }
 }
 
 //TODO:
 // - Create handling for offline users
-// - Receive and send message from client to another one
 // - Receive and save chatSession
 // - Retrieve chat session
