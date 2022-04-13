@@ -67,6 +67,11 @@ public class LogInController {
         stage.setTitle("Welcome " + username);
         stage.setScene(new Scene(root1));
         stage.show();
+        stage.setOnCloseRequest(event -> {
+            if(!ChatWindowController.exitSystem()){
+                event.consume();
+            }
+        });
     }
 
     public static FXMLLoader getFxmlLoaderChatWindow() {

@@ -3,13 +3,18 @@ package com.ijad.chatsystem.app.controllers;
 import com.ijad.chatsystem.app.classes.ClientThread;
 import com.ijad.chatsystem.commonclasses.Message;
 import javafx.fxml.FXML;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
 
 public class ChatWindowController {
     @FXML
@@ -23,7 +28,7 @@ public class ChatWindowController {
     @FXML
     private ListView<String> offlineUsersListView;
 
-    private Message message;
+    private Message message = new Message();
     private final String timeStamp = new SimpleDateFormat("HH:mm:ss' on 'dd.MM.yyyy").format(new Date());
 
 
@@ -59,33 +64,79 @@ public class ChatWindowController {
     }
 
     /**
-     * Displays conversation between users 
+     * Updates the GUI list of offline users
+     */
+    public void displayOfflineUsers() {
+        offlineUsersListView.getItems().clear();
+        offlineUsersListView.getItems().addAll(ClientThread.getOnlineUsersUsernames());
+        offlineUsersListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+    }
+
+    /**
+     * Displays conversation between users
      */
     public void displayChatHistory() {
-        allMessagesArea.clear();
         String chosenUser = onlineUsersListView.getSelectionModel().getSelectedItem();
-        ArrayList<Message> chatHistoryForChosenUser = ClientThread.getChatHistory().get(generateKey(chosenUser));
+        allMessagesArea.clear();
+        try {
+            ArrayList<Message> chatHistoryForChosenUser = ClientThread.getChatHistory().get(message.generateKey(chosenUser, ClientThread.getUsername()));
 
-        for (int i = 0; i < chatHistoryForChosenUser.size(); i++) {
-            Message message = chatHistoryForChosenUser.get(i);
-            StringBuilder messageForDisplay = new StringBuilder();
-            messageForDisplay.append(message.getSender()).append(": ").append(message.getContent())
-                    .append("\n").append(message.getTimeStamp());
-            allMessagesArea.appendText(messageForDisplay + "\n" + "\n");
+            for (int i = 0; i < chatHistoryForChosenUser.size(); i++) {
+                Message message = chatHistoryForChosenUser.get(i);
+                StringBuilder messageForDisplay = new StringBuilder();
+                messageForDisplay.append(message.getSender()).append(": ").append(message.getContent())
+                        .append("\n").append(message.getTimeStamp());
+                allMessagesArea.appendText(messageForDisplay + "\n" + "\n");
+            }
+        } catch (NullPointerException e) {
+            System.out.println("New conversation started with " + chosenUser);
         }
     }
-    
-    public String generateKey(String chosenUser){
-        ArrayList<String> listForOrdering = new ArrayList();
-        listForOrdering.add(chosenUser);
-        listForOrdering.add(ClientThread.getUsername());
-        Collections.sort(listForOrdering);
-        String key = listForOrdering.get(0) + "-" + listForOrdering.get(1);
-        return key;
+
+    /**
+     * Display new messages
+     */
+    public void displayNewMessages(Message message) {
+        String chosenUser = onlineUsersListView.getSelectionModel().getSelectedItem();
+        if (chosenUser != null) {
+            if (chosenUser.equals(message.getSender())) {
+                StringBuilder messageForDisplay = new StringBuilder();
+                messageForDisplay.append(message.getSender()).append(": ").append(message.getContent())
+                        .append("\n").append(message.getTimeStamp());
+                allMessagesArea.appendText(messageForDisplay + "\n" + "\n");
+            }
+        }
+        Alert messageNotification = new Alert(Alert.AlertType.INFORMATION);
+        messageNotification.setTitle("New message");
+        messageNotification.setContentText(ClientThread.getUsername() + " you have a new message from " + message.getSender());
+        messageNotification.show();
     }
 
-    public void exitSystem() {
+    public static boolean exitSystem() {
+        try {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Confirmation Dialog");
+            alert.setHeaderText("Do you want to exit?");
 
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.OK) {
+                System.out.println("Closing " + ClientThread.getUsername());
+                Message quit = new Message();
+                ClientThread.sendMessage(quit);
+                ClientThread.getObjectInputStream().close();
+                // ClientThread.getClientSocketOutputStream().close();
+                ClientThread.getClientSocket().close();
+
+
+                return true;
+
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public Message getMessage() {

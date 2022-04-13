@@ -6,10 +6,7 @@ import com.ijad.chatsystem.commonclasses.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -21,8 +18,8 @@ public class ServerThread extends Thread {
     private final Logger logger = LoggerFactory.getLogger(ServerThread.class);
 
     //Map between username and socket
-    private LinkedHashMap<String, Socket> onlineUsersMap = new LinkedHashMap<>();
-    private ArrayList<Object> offlineUsers = new ArrayList<>();
+    private static LinkedHashMap<String, Socket> onlineUsersMap = new LinkedHashMap<>();
+    private static LinkedHashMap<String, Socket> offlineUsersMap = new LinkedHashMap<>();
     //Chat history for every user
     private static Hashtable<String, ArrayList<Message>> messagesBetweenUsersHashTable = new Hashtable<>();
 
@@ -33,6 +30,20 @@ public class ServerThread extends Thread {
             ServerSocket serverSocket = new ServerSocket(port);
             logger.info("Server is running");
             while (true) {
+                /*
+                //Handling disconnected users
+                for (String s : onlineUsersMap.keySet()) {
+                    if (onlineUsersMap.get(s).isClosed()) {
+                        offlineUsersMap.put(s, onlineUsersMap.get(s));
+                        ClientDTO disconnectedUser = new ClientDTO(s, onlineUsersMap.get(s).toString());
+                        onlineUsersMap.remove(s);
+                        OfflineUsersManager offlineUsersManager = new OfflineUsersManager(ServerThread.getOfflineUsersMap(), disconnectedUser);
+                        offlineUsersManager.start();
+                        System.out.println(s + " has disconnected");
+                    }
+                }
+                */
+
                 //Accepting new clients
                 Socket clientSocket = serverSocket.accept();
                 InputStream inputStream = clientSocket.getInputStream();
@@ -44,15 +55,21 @@ public class ServerThread extends Thread {
                 onlineUsersMap.put(username, clientSocket);
                 logger.info("{} accepted", username);
 
+                //Send chat history to newly connected user
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                objectOutputStream.writeObject(ServerThread.getMessagesBetweenUsersHashTable());
+
                 //Send online users to clients
                 if (onlineUsersMap.size() > 1) {
                     OnlineUsersManager onlineUsersManager = new OnlineUsersManager(onlineUsersMap, newUser);
                     onlineUsersManager.start();
+
                 }
 
                 //Message handler for every client
                 MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap);
                 messagesHandler.start();
+
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -65,6 +82,22 @@ public class ServerThread extends Thread {
 
     public static void setMessagesBetweenUsersHashTable(Hashtable<String, ArrayList<Message>> messagesBetweenUsersHashTable) {
         ServerThread.messagesBetweenUsersHashTable = messagesBetweenUsersHashTable;
+    }
+
+    public static LinkedHashMap<String, Socket> getOnlineUsersMap() {
+        return onlineUsersMap;
+    }
+
+    public static void setOnlineUsersMap(LinkedHashMap<String, Socket> onlineUsersMap) {
+        ServerThread.onlineUsersMap = onlineUsersMap;
+    }
+
+    public static LinkedHashMap<String, Socket> getOfflineUsersMap() {
+        return offlineUsersMap;
+    }
+
+    public static void setOfflineUsersMap(LinkedHashMap<String, Socket> offlineUsersMap) {
+        ServerThread.offlineUsersMap = offlineUsersMap;
     }
 }
 
