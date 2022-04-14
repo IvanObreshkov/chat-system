@@ -24,22 +24,25 @@ public class OnlineUsersManager extends Thread {
         usersSockets = new ArrayList<>(onlineUsersMap.values());
     }
 
-
     @Override
     public void run() {
         try {
 
             //Send newUser to all others except him
             for (int i = 0; i < usersSockets.size() - 1; i++) {
-                ObjectOutputStream outputStreamToConnectedUser = new ObjectOutputStream((usersSockets.get(i).getOutputStream()));
-                outputStreamToConnectedUser.writeObject(newUser);
+                synchronized ((usersSockets.get(i).getOutputStream())) {
+                    ObjectOutputStream outputStreamToConnectedUser = new ObjectOutputStream((usersSockets.get(i).getOutputStream()));
+                    outputStreamToConnectedUser.writeObject(newUser);
+                }
             }
 
             //Send newUser all connected users except him
             for (int i = usersSockets.size() - 2; i >= 0; i--) {
-                ObjectOutputStream outputStreamToNewUser = new ObjectOutputStream(usersSockets.get(usersSockets.size() - 1).getOutputStream());
-                ClientDTO connectedUser = getConnectedUsers(usernames,usersSockets).get(i);
-                outputStreamToNewUser.writeObject(connectedUser);
+                synchronized ((usersSockets.get(i).getOutputStream())) {
+                    ObjectOutputStream outputStreamToNewUser = new ObjectOutputStream(usersSockets.get(usersSockets.size() - 1).getOutputStream());
+                    ClientDTO connectedUser = getConnectedUsers(usernames, usersSockets).get(i);
+                    outputStreamToNewUser.writeObject(connectedUser);
+                }
             }
 
         } catch (IOException e) {
@@ -61,5 +64,4 @@ public class OnlineUsersManager extends Thread {
         }
         return connectedUsers;
     }
-
 }

@@ -9,24 +9,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 public class ClientThread extends Thread {
 
     private final Logger logger = LoggerFactory.getLogger(ClientThread.class);
     private static String username;
     private static ArrayList<ClientDTO> onlineUsers = new ArrayList<>();
-    private static ArrayList<ClientDTO> offlineUsers = new ArrayList<>();
+    private static ArrayList<String> offlineUsers = new ArrayList<>();
     private ChatWindowController chatWindowController;
     private static InputStream clientSocketInputStream;
     private static OutputStream clientSocketOutputStream;
     private static Socket clientSocket;
     private static Hashtable<String, ArrayList<Message>> chatHistory = new Hashtable<>();
-    private static ObjectInputStream objectInputStream;
 
     public ClientThread(String username) {
         ClientThread.username = username;
@@ -45,34 +44,28 @@ public class ClientThread extends Thread {
             printWriter.println(username);
 
             while (true) {
-
                 if (clientSocket.isClosed()) {
-                    System.out.println("closing");
+                    logger.info("closing");
                     return;
                 }
                 //Receiving connected users
-                objectInputStream = new ObjectInputStream(clientSocketInputStream);
+                ObjectInputStream objectInputStream = new ObjectInputStream(clientSocketInputStream);
                 Object receivedObject = objectInputStream.readObject();
 
                 //Checking inputStream for chat history
                 if (receivedObject instanceof Hashtable) {
                     chatHistory = (Hashtable<String, ArrayList<Message>>) receivedObject;
+                    if(chatHistory.isEmpty()){
+                        chatWindowController.notifyForNewMessages();
+                    }
                 }
 
                 //Checking inputStream for new clients
                 else if (receivedObject instanceof ClientDTO) {
                     ClientDTO user = (ClientDTO) receivedObject;
-
-                    if (!onlineUsers.contains(user)) {
-                        onlineUsers.add(user);
-                        displayOnlineUsers();
-                        logger.info("New user " + user.getUsername());
-                    } else {
-                        offlineUsers.add(user);
-                        onlineUsers.remove(user);
-                        displayOfflineUsers();
-                        logger.info(user.getUsername() + " is now offline");
-                    }
+                    onlineUsers.add(user);
+                    displayOnlineUsers();
+                    logger.info("New user " + user.getUsername());
                 }
 
                 //Checking inputStream for new messages
@@ -81,9 +74,35 @@ public class ClientThread extends Thread {
                     linkMessagesToUser(receivedMessage);
                     displayNewMessages(receivedMessage);
                 }
+
+                //Checks if a user has gone offline
+                else if (receivedObject instanceof String) {
+                    String offlineUsername = (String) receivedObject;
+                    for (int i = 0; i < onlineUsers.size(); i++) {
+
+                        if (onlineUsers.get(i).getUsername().equals(offlineUsername)) {
+                            offlineUsers.add(onlineUsers.get(i).getUsername());
+                            onlineUsers.remove(onlineUsers.get(i));
+                            displayOnlineUsers();
+                            displayOfflineUsers();
+                            logger.info(offlineUsername + " is now offline");
+                        }
+                    }
+                    if (!offlineUsers.contains(offlineUsername)) {
+                        offlineUsers.add(offlineUsername);
+                        displayOnlineUsers();
+                        displayOfflineUsers();
+                    }
+                }
             }
 
-        } catch (ClassNotFoundException | IOException e) {
+        } catch (ConnectException e) {
+            logger.info("The server is offline");
+        } catch (SocketException e) {
+            logger.info("Closing " + ClientThread.getUsername());
+        } catch (EOFException e) {
+            logger.info("Server crashed");
+        } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -96,37 +115,17 @@ public class ClientThread extends Thread {
     public static void linkMessagesToUser(Message message) {
         String sender = message.getSender();
         String receiver = message.getReceiver();
-        String key = generateKey(sender, receiver);
+        String key = message.generateKey(sender, receiver);
         if (!chatHistory.containsKey(key)) {
             chatHistory.put(key, new ArrayList<>());
         }
         chatHistory.get(key).add(message);
     }
 
-    /**
-     * Generate key regardless of who is sender and receiver.
-     * Order receiver and sender alphabetically.
-     *
-     * @param sender
-     * @param receiver
-     * @return String key
-     */
-    public static String generateKey(String sender, String receiver) {
-        int compare = sender.compareTo(receiver);
-        String key = "";
-        if (compare < 0) {
-            key = receiver + "-" + sender;
-        } else {
-            key = sender + "-" + receiver;
-        }
-        return key;
-        // Extract to common
-    }
-
     public static ArrayList<String> getOnlineUsersUsernames() {
         ArrayList<String> onlineUsersUsernames = new ArrayList<>();
-        for (int i = 0; i < onlineUsers.size(); i++) {
-            onlineUsersUsernames.add(onlineUsers.get(i).getUsername());
+        for (ClientDTO onlineUser : onlineUsers) {
+            onlineUsersUsernames.add(onlineUser.getUsername());
         }
         return onlineUsersUsernames;
     }
@@ -134,14 +133,15 @@ public class ClientThread extends Thread {
     public static void sendMessage(Message message) throws IOException {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocketOutputStream);
         objectOutputStream.writeObject(message);
-        linkMessagesToUser(message);
+        if (message.getMessageType() == Message.MessageType.TEXT) {
+            linkMessagesToUser(message);
+        }
     }
 
     private void displayNewMessages(Message message) {
         Platform.runLater(() -> {
             chatWindowController = LogInController.getFxmlLoaderChatWindow().getController();
             chatWindowController.displayNewMessages(message);
-
         });
     }
 
@@ -149,7 +149,6 @@ public class ClientThread extends Thread {
         Platform.runLater(() -> {
             chatWindowController = LogInController.getFxmlLoaderChatWindow().getController();
             chatWindowController.displayOnlineUsers();
-
         });
     }
 
@@ -157,16 +156,11 @@ public class ClientThread extends Thread {
         Platform.runLater(() -> {
             chatWindowController = LogInController.getFxmlLoaderChatWindow().getController();
             chatWindowController.displayOfflineUsers();
-
         });
     }
 
     public static Hashtable<String, ArrayList<Message>> getChatHistory() {
         return chatHistory;
-    }
-
-    public static void setChatHistory(Hashtable<String, ArrayList<Message>> chatHistory) {
-        ClientThread.chatHistory = chatHistory;
     }
 
     public static InputStream getClientSocketInputStream() {
@@ -185,21 +179,7 @@ public class ClientThread extends Thread {
         return username;
     }
 
-    public static List<ClientDTO> getOnlineUsers() {
-        return onlineUsers;
-    }
-
-    public static List<ClientDTO> getOfflineUsers() {
+    public static ArrayList<String> getOfflineUsers() {
         return offlineUsers;
     }
-
-    public static ObjectInputStream getObjectInputStream() {
-        return objectInputStream;
-    }
 }
-
-//TODO:
-// - Create handling for offline users
-// - Display list of offline users
-// - Create a chat session history and its components
-// - Retrieve chat session

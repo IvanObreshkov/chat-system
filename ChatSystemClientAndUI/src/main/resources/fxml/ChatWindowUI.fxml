@@ -9,8 +9,8 @@
    <children>
       <Button fx:id="sendButton" layoutX="630.0" layoutY="540.0" mnemonicParsing="false" prefHeight="33.0" prefWidth="57.0" text="Send" onMouseClicked="#sendMessage" />
       <TextArea fx:id="allMessagesArea" layoutX="272.0" layoutY="132.0" prefHeight="366.0" prefWidth="414.0" />
-      <ListView fx:id="onlineUsersListView" layoutX="25.0" layoutY="129.0" prefHeight="200.0" prefWidth="200.0" onMouseClicked="#displayChatHistory"/>
-      <ListView fx:id="offlineUsersListView" layoutX="25.0" layoutY="373.0" prefHeight="200.0" prefWidth="200.0" />
+      <ListView fx:id="onlineUsersListView" layoutX="25.0" layoutY="129.0" prefHeight="200.0" prefWidth="200.0" onMouseClicked="#displayChatHistoryForOnlineUser"/>
+      <ListView fx:id="offlineUsersListView" layoutX="25.0" layoutY="373.0" prefHeight="200.0" prefWidth="200.0" onMouseClicked="#displayChatHistoryForOfflineUser"/>
       <TextField fx:id="messageField" layoutX="272.0" layoutY="540.0" prefHeight="33.0" prefWidth="333.0" />
       <Label layoutX="26.0" layoutY="106.0" text="Online users" />
       <Label layoutX="25.0" layoutY="350.0" text="Offline users" />

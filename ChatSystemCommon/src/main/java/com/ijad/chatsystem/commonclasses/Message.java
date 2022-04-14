@@ -8,7 +8,7 @@ import java.io.Serializable;
  */
 public class Message implements Serializable {
 
-    private enum MessageType {TEXT, CLOSE}
+    public enum MessageType {TEXT, CLOSE}
 
     private String content;
     private String sender;
@@ -35,13 +35,19 @@ public class Message implements Serializable {
     /**
      * Closing message
      */
-    public Message() {
+    public Message(String sender) {
+        this.sender = sender;
         this.messageType = MessageType.CLOSE;
     }
 
     /**
-     * Generate key regardless of who is sender and receiver.
-     * Order receiver and sender alphabetically.
+     * Empty constructor
+     */
+    public Message(){}
+
+    /**
+     * Generate key for chat history regardless of who is sender and receiver.
+     * Order receiver and sender lexicographically.
      *
      * @param sender
      * @param receiver
@@ -59,35 +65,26 @@ public class Message implements Serializable {
     }
 
     public String getContent() {
-
         return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
     }
 
     public String getSender() {
         return sender;
     }
 
-    public void setSender(String sender) {
-        this.sender = sender;
-    }
-
     public String getReceiver() {
         return receiver;
-    }
-
-    public void setReceiver(String receiver) {
-        this.receiver = receiver;
     }
 
     public String getTimeStamp() {
         return timeStamp;
     }
 
-    public void setTimeStamp(String timeStamp) {
-        this.timeStamp = timeStamp;
+    public MessageType getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(MessageType messageType) {
+        this.messageType = messageType;
     }
 }

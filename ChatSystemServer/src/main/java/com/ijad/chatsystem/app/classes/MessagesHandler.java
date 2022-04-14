@@ -1,6 +1,9 @@
 package com.ijad.chatsystem.app.classes;
 
+import com.ijad.chatsystem.commonclasses.ClientDTO;
 import com.ijad.chatsystem.commonclasses.Message;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,10 +20,14 @@ public class MessagesHandler extends Thread {
 
     private InputStream inputStream;
     private LinkedHashMap<String, Socket> onlineUsersMap;
+    private ArrayList<String> offlineUsersList;
+    private final Logger logger = LoggerFactory.getLogger(MessagesHandler.class);
 
-    public MessagesHandler(InputStream inputStream, LinkedHashMap<String, Socket> onlineUsersMap) {
+
+    public MessagesHandler(InputStream inputStream, LinkedHashMap<String, Socket> onlineUsersMap, ArrayList<String> offlineUsersList) {
         this.inputStream = inputStream;
         this.onlineUsersMap = onlineUsersMap;
+        this.offlineUsersList = offlineUsersList;
     }
 
     @Override
@@ -30,13 +37,27 @@ public class MessagesHandler extends Thread {
                 //Send message to receiver and add it to the server's chat history
                 ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
                 Message messageForSending = (Message) objectInputStream.readObject();
-                Socket clientSocket = onlineUsersMap.get(messageForSending.getReceiver());
-                linkMessagesToUser(messageForSending);
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-                objectOutputStream.writeObject(messageForSending);
+                if(messageForSending.getMessageType() == Message.MessageType.TEXT) {
+                    if(onlineUsersMap.containsKey(messageForSending.getReceiver())) {
+                        Socket clientSocket = onlineUsersMap.get(messageForSending.getReceiver());
+                        linkMessagesToUser(messageForSending);
+                        ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+                        objectOutputStream.writeObject(messageForSending);
+                    }else {
+                        linkMessagesToUser(messageForSending);
+                    }
+                }else{
+                    String offlineUserName = messageForSending.getSender();
+                    onlineUsersMap.get(messageForSending.getSender()).close();
+                    offlineUsersList.add(offlineUserName);
+                    onlineUsersMap.remove(offlineUserName);
+                    OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap, offlineUsersList);
+                    offlineUsersManager.start();
+                    logger.info(offlineUserName + " has disconnected");
+                }
             }
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("");
         }
     }
 

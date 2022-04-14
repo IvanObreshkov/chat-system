@@ -18,8 +18,8 @@ public class ServerThread extends Thread {
     private final Logger logger = LoggerFactory.getLogger(ServerThread.class);
 
     //Map between username and socket
-    private static LinkedHashMap<String, Socket> onlineUsersMap = new LinkedHashMap<>();
-    private static LinkedHashMap<String, Socket> offlineUsersMap = new LinkedHashMap<>();
+    private LinkedHashMap<String, Socket> onlineUsersMap = new LinkedHashMap<>();
+    private ArrayList<String> offlineUsersList = new ArrayList<>();
     //Chat history for every user
     private static Hashtable<String, ArrayList<Message>> messagesBetweenUsersHashTable = new Hashtable<>();
 
@@ -30,19 +30,6 @@ public class ServerThread extends Thread {
             ServerSocket serverSocket = new ServerSocket(port);
             logger.info("Server is running");
             while (true) {
-                /*
-                //Handling disconnected users
-                for (String s : onlineUsersMap.keySet()) {
-                    if (onlineUsersMap.get(s).isClosed()) {
-                        offlineUsersMap.put(s, onlineUsersMap.get(s));
-                        ClientDTO disconnectedUser = new ClientDTO(s, onlineUsersMap.get(s).toString());
-                        onlineUsersMap.remove(s);
-                        OfflineUsersManager offlineUsersManager = new OfflineUsersManager(ServerThread.getOfflineUsersMap(), disconnectedUser);
-                        offlineUsersManager.start();
-                        System.out.println(s + " has disconnected");
-                    }
-                }
-                */
 
                 //Accepting new clients
                 Socket clientSocket = serverSocket.accept();
@@ -51,25 +38,26 @@ public class ServerThread extends Thread {
 
                 //Link client's socket to their username
                 String username = bufferedReader.readLine();
+                offlineUsersList.remove(username);
                 ClientDTO newUser = new ClientDTO(username, clientSocket.toString());
                 onlineUsersMap.put(username, clientSocket);
                 logger.info("{} accepted", username);
 
                 //Send chat history to newly connected user
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-                objectOutputStream.writeObject(ServerThread.getMessagesBetweenUsersHashTable());
+                objectOutputStream.writeObject(messagesBetweenUsersHashTable);
 
-                //Send online users to clients
+                //Send online and offline users to clients
                 if (onlineUsersMap.size() > 1) {
-                    OnlineUsersManager onlineUsersManager = new OnlineUsersManager(onlineUsersMap, newUser);
-                    onlineUsersManager.start();
-
+                    OnlineUsersManager OnlineUsersManager = new OnlineUsersManager(onlineUsersMap, newUser);
+                    OnlineUsersManager.start();
+                    OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap, offlineUsersList);
+                    offlineUsersManager.start();
                 }
 
                 //Message handler for every client
-                MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap);
+                MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap, offlineUsersList);
                 messagesHandler.start();
-
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -79,29 +67,16 @@ public class ServerThread extends Thread {
     public static Hashtable<String, ArrayList<Message>> getMessagesBetweenUsersHashTable() {
         return messagesBetweenUsersHashTable;
     }
-
-    public static void setMessagesBetweenUsersHashTable(Hashtable<String, ArrayList<Message>> messagesBetweenUsersHashTable) {
-        ServerThread.messagesBetweenUsersHashTable = messagesBetweenUsersHashTable;
-    }
-
-    public static LinkedHashMap<String, Socket> getOnlineUsersMap() {
+    
+    public LinkedHashMap<String, Socket> getOnlineUsersMap() {
         return onlineUsersMap;
     }
 
-    public static void setOnlineUsersMap(LinkedHashMap<String, Socket> onlineUsersMap) {
-        ServerThread.onlineUsersMap = onlineUsersMap;
-    }
-
-    public static LinkedHashMap<String, Socket> getOfflineUsersMap() {
-        return offlineUsersMap;
-    }
-
-    public static void setOfflineUsersMap(LinkedHashMap<String, Socket> offlineUsersMap) {
-        ServerThread.offlineUsersMap = offlineUsersMap;
+    public ArrayList<String> getOfflineUsersList() {
+        return offlineUsersList;
     }
 }
 
 //TODO:
-// - Create handling for offline users
 // - Receive and save chatSession
 // - Retrieve chat session
