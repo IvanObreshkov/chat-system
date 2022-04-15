@@ -54,8 +54,7 @@ public class ClientThread extends Thread {
 
                 //Checking inputStream for chat history
                 if (receivedObject instanceof Hashtable) {
-                    Hashtable<String, ArrayList<Message>> serverCharHistory = (Hashtable<String, ArrayList<Message>>) receivedObject;
-                    localChatHistory =serverCharHistory;
+                    localChatHistory = (Hashtable<String, ArrayList<Message>>) receivedObject;
                 }
 
                 //Checking inputStream for new clients
@@ -105,10 +104,8 @@ public class ClientThread extends Thread {
             logger.info("The server is offline");
         } catch (SocketException e) {
             logger.info("Closing " + ClientThread.getUsername());
-        } catch (EOFException e) {
-            logger.info("Server crashed");
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            logger.info("Server crashed");
         }
     }
 

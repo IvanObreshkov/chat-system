@@ -20,14 +20,12 @@ public class MessagesHandler extends Thread {
 
     private InputStream inputStream;
     private LinkedHashMap<String, Socket> onlineUsersMap;
-    private ArrayList<String> offlineUsersList;
     private final Logger logger = LoggerFactory.getLogger(MessagesHandler.class);
 
 
-    public MessagesHandler(InputStream inputStream, LinkedHashMap<String, Socket> onlineUsersMap, ArrayList<String> offlineUsersList) {
+    public MessagesHandler(InputStream inputStream, LinkedHashMap<String, Socket> onlineUsersMap) {
         this.inputStream = inputStream;
         this.onlineUsersMap = onlineUsersMap;
-        this.offlineUsersList = offlineUsersList;
     }
 
     @Override
@@ -49,12 +47,16 @@ public class MessagesHandler extends Thread {
                 }else{
                     String offlineUserName = messageForSending.getSender();
                     onlineUsersMap.get(messageForSending.getSender()).close();
-                    offlineUsersList.add(offlineUserName);
+                    ServerThread.getOfflineUsersList().add(offlineUserName);
                     onlineUsersMap.remove(offlineUserName);
-                    OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap, offlineUsersList);
+                    ServerThread.serialize(ServerThread.getOfflineUsersList(), ServerThread.OFFLINE_USERS_PATH);
+
+                    OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap);
                     offlineUsersManager.start();
                     logger.info(offlineUserName + " has disconnected");
+
                 }
+
             }
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("");
@@ -66,7 +68,7 @@ public class MessagesHandler extends Thread {
      *
      * @param message
      */
-    public void linkMessagesToUser(Message message) {
+    public void linkMessagesToUser(Message message) throws IOException {
         String sender = message.getSender();
         String receiver = message.getReceiver();
         String key = message.generateKey(sender, receiver);
@@ -74,5 +76,6 @@ public class MessagesHandler extends Thread {
             ServerThread.getMessagesBetweenUsersHashTable().put(key, new ArrayList<>());
         }
         ServerThread.getMessagesBetweenUsersHashTable().get(key).add(message);
+        ServerThread.serialize(ServerThread.getMessagesBetweenUsersHashTable(), ServerThread.CHAT_HISTORY_PATH);
     }
 }

@@ -10,13 +10,11 @@ import java.util.LinkedHashMap;
 
 public class OfflineUsersManager extends Thread {
     private LinkedHashMap<String, Socket> onlineUsersMap;
-    private ArrayList<String> offlineUsersList;
     private ArrayList<Socket> usersSockets;
     private ArrayList<String> usernames;
 
-    public OfflineUsersManager(LinkedHashMap<String, Socket> onlineUsersMap, ArrayList<String> offlineUsersListr) {
+    public OfflineUsersManager(LinkedHashMap<String, Socket> onlineUsersMap) {
         this.onlineUsersMap = onlineUsersMap;
-        this.offlineUsersList = offlineUsersListr;
 
         //Separating the offlineUsersMap to ArrayLists of usernames and sockets for handling later
         usernames = new ArrayList<>(onlineUsersMap.keySet());
@@ -30,9 +28,9 @@ public class OfflineUsersManager extends Thread {
             //Send offline users to all online others
             for (int i = 0; i < usersSockets.size(); i++) {
 
-                for (int j = 0; j < offlineUsersList.size(); j++) {
+                for (int j = 0; j < ServerThread.getOfflineUsersList().size(); j++) {
                     ObjectOutputStream outputStreamToConnectedUser = new ObjectOutputStream((usersSockets.get(i).getOutputStream()));
-                    outputStreamToConnectedUser.writeObject(offlineUsersList.get(j));
+                    outputStreamToConnectedUser.writeObject(ServerThread.getOfflineUsersList().get(j));
 
                 }
             }

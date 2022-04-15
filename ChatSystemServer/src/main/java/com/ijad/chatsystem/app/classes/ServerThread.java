@@ -9,17 +9,23 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
 
 
 public class ServerThread extends Thread {
+    public static final String CHAT_HISTORY_PATH = "/home/vankata/Documents/chatHistory.ser";
+    public static final String OFFLINE_USERS_PATH = "/home/vankata/Documents/offlineUsers.ser";
+
+
     private final Logger logger = LoggerFactory.getLogger(ServerThread.class);
 
     //Map between username and socket
     private LinkedHashMap<String, Socket> onlineUsersMap = new LinkedHashMap<>();
-    private ArrayList<String> offlineUsersList = new ArrayList<>();
+    private static ArrayList<String> offlineUsersList = new ArrayList<>();
     //Chat history for every user
     private static Hashtable<String, ArrayList<Message>> messagesBetweenUsersHashTable = new Hashtable<>();
 
@@ -29,12 +35,25 @@ public class ServerThread extends Thread {
             int port = 7006;
             ServerSocket serverSocket = new ServerSocket(port);
             logger.info("Server is running");
+
+            if (!Files.exists(Path.of(CHAT_HISTORY_PATH))) {
+                serialize(messagesBetweenUsersHashTable, CHAT_HISTORY_PATH);
+            }
+
+            if (!Files.exists(Path.of(OFFLINE_USERS_PATH))) {
+                serialize(offlineUsersList, OFFLINE_USERS_PATH);
+            }
+
             while (true) {
 
                 //Accepting new clients
                 Socket clientSocket = serverSocket.accept();
                 InputStream inputStream = clientSocket.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+
+                messagesBetweenUsersHashTable = (Hashtable<String, ArrayList<Message>>) deserialize(CHAT_HISTORY_PATH);
+                offlineUsersList = (ArrayList<String>) deserialize(OFFLINE_USERS_PATH);
+                //maybe make static
 
                 //Link client's socket to their username
                 String username = bufferedReader.readLine();
@@ -47,7 +66,7 @@ public class ServerThread extends Thread {
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
                 objectOutputStream.writeObject(messagesBetweenUsersHashTable);
 
-                OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap, offlineUsersList);
+                OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap);
                 offlineUsersManager.start();
                 offlineUsersManager.join();
 
@@ -57,23 +76,56 @@ public class ServerThread extends Thread {
 
 
                 //Message handler for every client
-                MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap, offlineUsersList);
+                MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap);
                 messagesHandler.start();
+
             }
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Serialize the chat history object and save it to file
+     *
+     * @param obj
+     * @param fileName
+     * @throws IOException
+     */
+    public static void serialize(Object obj, String fileName) throws IOException {
+        ObjectOutputStream objectOut = new ObjectOutputStream(
+                new BufferedOutputStream(
+                        new FileOutputStream(fileName)));
+        objectOut.writeObject(obj);
+        objectOut.close();
+    }
+
+    /**
+     * Deserialize chat history from file
+     *
+     * @param fileName
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
+    public static Object deserialize(String fileName) throws IOException, ClassNotFoundException {
+        ObjectInputStream objectIn = new ObjectInputStream(
+                new BufferedInputStream(
+                        new FileInputStream(fileName)));
+        Object myObj = objectIn.readObject();
+        objectIn.close();
+        return myObj;
     }
 
     public static Hashtable<String, ArrayList<Message>> getMessagesBetweenUsersHashTable() {
         return messagesBetweenUsersHashTable;
     }
-    
+
     public LinkedHashMap<String, Socket> getOnlineUsersMap() {
         return onlineUsersMap;
     }
 
-    public ArrayList<String> getOfflineUsersList() {
+    public static ArrayList<String> getOfflineUsersList() {
         return offlineUsersList;
     }
 }
