@@ -29,11 +29,11 @@ public class OfflineUsersManager extends Thread {
         try {
             //Send offline users to all online others
             for (int i = 0; i < usersSockets.size(); i++) {
+
                 for (int j = 0; j < offlineUsersList.size(); j++) {
-                    synchronized ((usersSockets.get(i).getOutputStream())) {
-                        ObjectOutputStream outputStreamToConnectedUser = new ObjectOutputStream((usersSockets.get(i).getOutputStream()));
-                        outputStreamToConnectedUser.writeObject(offlineUsersList.get(j));
-                    }
+                    ObjectOutputStream outputStreamToConnectedUser = new ObjectOutputStream((usersSockets.get(i).getOutputStream()));
+                    outputStreamToConnectedUser.writeObject(offlineUsersList.get(j));
+
                 }
             }
         } catch (IOException e) {

@@ -47,19 +47,20 @@ public class ServerThread extends Thread {
                 ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
                 objectOutputStream.writeObject(messagesBetweenUsersHashTable);
 
+                OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap, offlineUsersList);
+                offlineUsersManager.start();
+                offlineUsersManager.join();
+
                 //Send online and offline users to clients
-                if (onlineUsersMap.size() > 1) {
-                    OnlineUsersManager OnlineUsersManager = new OnlineUsersManager(onlineUsersMap, newUser);
-                    OnlineUsersManager.start();
-                    OfflineUsersManager offlineUsersManager = new OfflineUsersManager(onlineUsersMap, offlineUsersList);
-                    offlineUsersManager.start();
-                }
+                OnlineUsersManager onlineUsersManager = new OnlineUsersManager(onlineUsersMap, newUser);
+                onlineUsersManager.start();
+
 
                 //Message handler for every client
                 MessagesHandler messagesHandler = new MessagesHandler(inputStream, onlineUsersMap, offlineUsersList);
                 messagesHandler.start();
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }

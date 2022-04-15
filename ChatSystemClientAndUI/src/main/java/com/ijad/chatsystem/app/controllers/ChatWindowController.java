@@ -86,6 +86,7 @@ public class ChatWindowController {
      */
     public void displayChatHistoryForOnlineUser() {
         String chosenOnlineUser = onlineUsersListView.getSelectionModel().getSelectedItem();
+        offlineUsersListView.getSelectionModel().clearSelection();
         displayChatHistory(chosenOnlineUser);
     }
 
@@ -94,6 +95,7 @@ public class ChatWindowController {
      */
     public void displayChatHistoryForOfflineUser() {
         String chosenOfflineUser = offlineUsersListView.getSelectionModel().getSelectedItem();
+        onlineUsersListView.getSelectionModel().clearSelection();
         displayChatHistory(chosenOfflineUser);
     }
 
@@ -103,7 +105,7 @@ public class ChatWindowController {
     private void displayChatHistory(String chosenUser) {
         allMessagesArea.clear();
         try {
-            ArrayList<Message> chatHistoryForChosenUser = ClientThread.getChatHistory().get(message.generateKey(chosenUser, ClientThread.getUsername()));
+            ArrayList<Message> chatHistoryForChosenUser = ClientThread.getLocalChatHistory().get(message.generateKey(chosenUser, ClientThread.getUsername()));
             for (Message message : chatHistoryForChosenUser) {
                 StringBuilder messageForDisplay = new StringBuilder();
                 messageForDisplay.append(message.getSender()).append(": ").append(message.getContent())
@@ -128,11 +130,6 @@ public class ChatWindowController {
                 allMessagesArea.appendText(messageForDisplay + "\n" + "\n");
             }
         }
-
-        Alert messageNotification = new Alert(Alert.AlertType.INFORMATION);
-        messageNotification.setTitle("New message");
-        messageNotification.setContentText(ClientThread.getUsername() + " you have a new message from " + message.getSender());
-        messageNotification.show();
     }
 
     /**
@@ -163,13 +160,6 @@ public class ChatWindowController {
             e.printStackTrace();
         }
         return false;
-    }
-
-    public void notifyForNewMessages() {
-        Alert messageNotification = new Alert(Alert.AlertType.INFORMATION);
-        messageNotification.setTitle("New message");
-        messageNotification.setContentText(ClientThread.getUsername() + " you have a new messages");
-        messageNotification.show();
     }
 
     public Message getMessage() {

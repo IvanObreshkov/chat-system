@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.*;
-import com.ijad.chatsystem.commonclasses. *;
+
+import com.ijad.chatsystem.commonclasses.*;
 
 /**
  * Updates statuses of users by sending lists of online and offline users to all connected clients
@@ -30,19 +31,16 @@ public class OnlineUsersManager extends Thread {
 
             //Send newUser to all others except him
             for (int i = 0; i < usersSockets.size() - 1; i++) {
-                synchronized ((usersSockets.get(i).getOutputStream())) {
-                    ObjectOutputStream outputStreamToConnectedUser = new ObjectOutputStream((usersSockets.get(i).getOutputStream()));
-                    outputStreamToConnectedUser.writeObject(newUser);
-                }
+                ObjectOutputStream outputStreamToConnectedUser = new ObjectOutputStream((usersSockets.get(i).getOutputStream()));
+                outputStreamToConnectedUser.writeObject(newUser);
+
             }
 
             //Send newUser all connected users except him
             for (int i = usersSockets.size() - 2; i >= 0; i--) {
-                synchronized ((usersSockets.get(i).getOutputStream())) {
-                    ObjectOutputStream outputStreamToNewUser = new ObjectOutputStream(usersSockets.get(usersSockets.size() - 1).getOutputStream());
-                    ClientDTO connectedUser = getConnectedUsers(usernames, usersSockets).get(i);
-                    outputStreamToNewUser.writeObject(connectedUser);
-                }
+                ObjectOutputStream outputStreamToNewUser = new ObjectOutputStream(usersSockets.get(usersSockets.size() - 1).getOutputStream());
+                ClientDTO connectedUser = getConnectedUsers(usernames, usersSockets).get(i);
+                outputStreamToNewUser.writeObject(connectedUser);
             }
 
         } catch (IOException e) {
@@ -52,6 +50,7 @@ public class OnlineUsersManager extends Thread {
 
     /**
      * Gets already connected clients
+     *
      * @param usernames
      * @param usersSockets
      * @return ArrayList of connected ClientDTOs

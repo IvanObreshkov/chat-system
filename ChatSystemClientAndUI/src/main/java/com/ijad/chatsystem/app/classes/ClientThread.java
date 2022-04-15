@@ -25,7 +25,7 @@ public class ClientThread extends Thread {
     private static InputStream clientSocketInputStream;
     private static OutputStream clientSocketOutputStream;
     private static Socket clientSocket;
-    private static Hashtable<String, ArrayList<Message>> chatHistory = new Hashtable<>();
+    private static Hashtable<String, ArrayList<Message>> localChatHistory = new Hashtable<>();
 
     public ClientThread(String username) {
         ClientThread.username = username;
@@ -54,15 +54,18 @@ public class ClientThread extends Thread {
 
                 //Checking inputStream for chat history
                 if (receivedObject instanceof Hashtable) {
-                    chatHistory = (Hashtable<String, ArrayList<Message>>) receivedObject;
-                    if(chatHistory.isEmpty()){
-                        chatWindowController.notifyForNewMessages();
-                    }
+                    Hashtable<String, ArrayList<Message>> serverCharHistory = (Hashtable<String, ArrayList<Message>>) receivedObject;
+                    localChatHistory =serverCharHistory;
                 }
 
                 //Checking inputStream for new clients
                 else if (receivedObject instanceof ClientDTO) {
                     ClientDTO user = (ClientDTO) receivedObject;
+
+                    if (offlineUsers.contains(user.getUsername())) {
+                        offlineUsers.remove(user.getUsername());
+                        displayOfflineUsers();
+                    }
                     onlineUsers.add(user);
                     displayOnlineUsers();
                     logger.info("New user " + user.getUsername());
@@ -93,7 +96,9 @@ public class ClientThread extends Thread {
                         displayOnlineUsers();
                         displayOfflineUsers();
                     }
+
                 }
+
             }
 
         } catch (ConnectException e) {
@@ -116,10 +121,10 @@ public class ClientThread extends Thread {
         String sender = message.getSender();
         String receiver = message.getReceiver();
         String key = message.generateKey(sender, receiver);
-        if (!chatHistory.containsKey(key)) {
-            chatHistory.put(key, new ArrayList<>());
+        if (!localChatHistory.containsKey(key)) {
+            localChatHistory.put(key, new ArrayList<>());
         }
-        chatHistory.get(key).add(message);
+        localChatHistory.get(key).add(message);
     }
 
     public static ArrayList<String> getOnlineUsersUsernames() {
@@ -159,8 +164,8 @@ public class ClientThread extends Thread {
         });
     }
 
-    public static Hashtable<String, ArrayList<Message>> getChatHistory() {
-        return chatHistory;
+    public static Hashtable<String, ArrayList<Message>> getLocalChatHistory() {
+        return localChatHistory;
     }
 
     public static InputStream getClientSocketInputStream() {
